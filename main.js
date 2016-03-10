@@ -164,8 +164,33 @@ function Sprite(x, y, w, h) {
 	}
 
 	// Axis-aligned bounding box
-	this.setBoundingBox = function(w, h) {
+	this.setBoundingBox = function(offX, offY, w, h, s) {
+		s = s || this.image;
 
+		offX = offX || 0;
+		offY = offY || 0;
+
+		w = w || this.size.x;
+		h = h || this.size.y;
+
+		switch(s) {
+			case 'rect':
+				return {left: offX, right: offX + w, top: offY, bottom: offY + h};
+				break;
+		}
+	}
+
+	this.colliding = function(s) {
+		return (this.boundingbox.bottom + this.position.y >= s.boundingbox.top + s.position.y) &&
+				(this.boundingbox.top + this.position.y <= s.boundingbox.bottom + s.position.y) &&
+				(this.position.x + this.boundingbox.right >= s.position.x + s.boundingbox.left) && 
+				(this.boundingbox.left + this.position.x <= s.position.x + s.boundingbox.right);
+	}
+
+	this.bounce = function(s) {
+		if(this.colliding(s)) {
+			this.vel.mult(-1);
+		}
 	}
 
 	this.moveTowards = function(x, y, s) {
@@ -196,6 +221,8 @@ function Sprite(x, y, w, h) {
 	this.keyPresses = {};
 	this.keyReleases = {};
 	this.visible = true;
+
+	this.boundingbox = this.setBoundingBox(0, 0, this.size.x, this.size.y);
 }
 
 function SpriteGroup() {
@@ -301,10 +328,13 @@ function drawSprites(update) {
 
 function setup() {
 	createCanvas(windowWidth, windowHeight);
+	createSprite(500, 100, 100, 100);
+	createSprite(500, 500, 200, 200);
 }
 
 function draw() {
 	clear();
+	sprites[0].bounce(sprites[1]);
 	drawSprites();
 }
 
